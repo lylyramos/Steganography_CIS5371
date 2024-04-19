@@ -141,7 +141,7 @@ void embedDataIntoAudio(const string& audioPath, const vector<bool>& data) {
 
 int main() {
     // Welcome message
-    cout << "Welcome to Steganography Tool!" << endl;
+    cout << "Welcome to the Steganography Tool!" << endl;
     cout << "This tool allows you to embed ciphertext data into images or audio files." << endl;
 
     // Get key size
@@ -187,7 +187,7 @@ int main() {
 
     // Ask user for preference
     int preference;
-    cout << "Enter your preference (1 for image, 2 for audio): ";
+    cout << "Choose your file:\n 1. Image\n 2. Audio\n";
     cin >> preference;
 
     if (preference == 1) {
@@ -203,7 +203,7 @@ int main() {
         cin >> audioPath;
         embedDataIntoAudio(audioPath, binaryCiphertext);
     } else {
-        cout << "Invalid preference. Please enter 1 for image or 2 for audio." << endl;
+        cout << "Invalid choice. Please enter 1 for image or 2 for audio." << endl;
         return 1;
     }
 
