@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include "InfInt.h"
 #include "ElGamalF.cpp"
+#include <opencv2/opencv.hpp>
+#include <unistd.h>
+#include <limits.h>
 #include <filesystem> // for creating directories
 using namespace std;
 namespace fs = std::filesystem;
@@ -52,29 +55,49 @@ string toBinaryString(const InfInt& number) {
 void embedDataIntoImage(const string& imagePath, const vector<bool>& data) {
     vector<char> imageData = readingtoBinaryFile(imagePath);
 
-    // Embed the binary data into the LSB of the image data
-    for (size_t i = 0; i < data.size(); ++i) {
-        // Clear the LSB of the byte
-        imageData[i] &= 0xFE;
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        std::cout << "Current working dir: " << cwd << std::endl;
+    } else {
+        perror("getcwd() error");
+        return 1;
+    }
+    
+    //call convert cipher texts to binary function 
+    vector<bool> binaryCiphertext;
+    convertCiphertextsToBinary(ciphertexts, binaryCiphertext);
 
-        // Set the LSB to the bit
-        imageData[i] |= data[i];
+    // Read the binary data of the image
+    cv::Mat img = cv::imread("image.jpg");
+
+    
+    // Check if image has been read correctly
+    if (img.empty()) 
+    {
+        cout << "Could not read the image" << endl;
+        exit(1); //terminates the program
+    }
+    
+    //embed the ciphertext into the image
+    size_t dataIndex = 0;
+    for (int i = 0; i < img.rows; i++) {
+    for (int j = 0; j < img.cols; j++) {
+        for (int k = 0; k < img.channels(); k++) {
+            if (dataIndex < binaryCiphertext.size()) {
+                // Clear the LSB of the pixel and set it to the bit
+                img.at<cv::Vec3b>(i, j)[k] = (img.at<cv::Vec3b>(i, j)[k] & 0xFE) | binaryCiphertext[dataIndex++];
+                }   
+            }
+        }
     }
 
-    // Create output_images directory if it doesn't exist
-    fs::create_directory("output_images");
-
-    // Write modified image data to output image file
-    string outputImagePath = "output_images/output.png";
-    ofstream outputFile(outputImagePath, ios::binary);
-    if (!outputFile) {
-        cerr << "Error: Could not open output file for writing." << endl;
-        return;
+    //save the modified image
+    if (!cv::imwrite("output.jpg", img)) {
+    cout << "Error: Could not write image to output file." << endl;
+    exit(1);
     }
-    outputFile.write(imageData.data(), imageData.size());
-    outputFile.close();
-
-    cout << "Steganographic image created successfully. Output saved in 'output_images' folder." << endl;
+    
+    cout << "Steganographic image created successfully." << endl;
 }
 
 // Function to embed binary data into an audio file
